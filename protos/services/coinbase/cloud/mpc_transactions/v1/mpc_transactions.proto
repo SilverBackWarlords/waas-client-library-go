@@ -14,7 +14,7 @@ option go_package = "github.com/coinbase/waas-client-library-go/gen/go/coinbase/
 
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
     info: {
-        title: "MPC Transactions API";
+        title: "MPCTransactions API";
         version: "1.0";
     };
     host: "api.developer.coinbase.com/waas/mpc_transactions"
@@ -36,6 +36,9 @@ service MPCTransactionService {
   // information about the state of the MPCTransaction that can be used to complete the operation.
   // The LRO is considered Done once the MPCTransaction reaches a state of `CONFIRMING`` (i.e.,
   // broadcast on-chain). See the MPCTransaction documentation for its lifecycle.
+  // Note: because the creation of MPC operations is asynchronous, ListMPCOperations may return a
+  // NOT_FOUND error immediately after calling this. To complete the operation, continue polling 
+  // ListMPCOperations even after it returns a NOT_FOUND error. 
   rpc CreateMPCTransaction(CreateMPCTransactionRequest) returns (google.longrunning.Operation) {
     option (google.api.http) = {
       post: "/v1/{parent=pools/*/mpcWallets/*}/mpcTransactions"
@@ -48,7 +51,7 @@ service MPCTransactionService {
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "CreateMPCTransaction"
-      description: "Creates an MPCTransaction.\n\n The long-running operation returned from this API contains information about the state of the MPCTransaction that can be used to complete the operation. The LRO is considered Done when the MPCTransaction reaches a state of `CONFIRMING` (i.e., broadcast on-chain). See the MPCTransaction documentation for its lifecycle."
+      description: "Creates an MPCTransaction.\n\n The long-running operation returned from this API contains information about the state of the MPCTransaction that can be used to complete the operation. The LRO is considered Done when the MPCTransaction reaches a state of `CONFIRMING` (i.e., broadcast on-chain). See the MPCTransaction documentation for its lifecycle.\n\n Note: because the creation of MPC operations is asynchronous, ListMPCOperations may return a NOT_FOUND error immediately after calling this. To complete the operation, continue polling ListMPCOperations even after it returns a NOT_FOUND error."
     };
   }
 
@@ -133,7 +136,6 @@ message MPCTransaction {
   // The resource name of the Addresses from which to send the MPCTransaction.
   // For account-based Networks, only the first address is used.
   // Format: networks/{network_id}/addresses/{address_id}.
-  // (-- api-linter: core::0140::prepositions=disabled --)
   repeated string from_addresses = 3 [
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference) = {type: "api.developer.coinbase.com/MPCWallet"},
